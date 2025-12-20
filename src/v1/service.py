@@ -28,7 +28,7 @@ class YT:
                 output_path=self.download_path,
             )
 
-        return YouTube(url=consts.YT + video_id, use_oauth=True)
+        return yt
 
     def __find_link(self, query: str):
         """Check if the given query is a youtube link, if not then return nothing"""
@@ -121,6 +121,13 @@ class YT:
     def stream(self, video_id: str) -> str:
         yt = self.__youtube(video_id=video_id)
         return "{}/music/{}".format(consts.SERVICE_URL, yt.video_id)
+
+    def url(self, video_id: str) -> str:
+        """This method is mainly used to trigger the oauth prompt"""
+        yt = YouTube(url=consts.YT + video_id, use_oauth=True)
+        audio = yt.streams.get_audio_only()
+        assert audio
+        return audio.url
 
     def health(self) -> str:
         return Strings.HEALTH_DRAMATIC

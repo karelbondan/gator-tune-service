@@ -44,5 +44,4 @@ class GatorKey(APIKeyHeader):
 
 def init():
     yt = YT()
-    yt.stream("dQw4w9WgXcQ")
-    yt.remove("dQw4w9WgXcQ")
+    yt.url("dQw4w9WgXcQ")
