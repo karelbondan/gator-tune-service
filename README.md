@@ -6,6 +6,8 @@ This is the service repository for [Gator Tune](https://github.com/karelbondan/g
 
 This bot uses pytubefix underneath, hence possible errors relating to YouTube's side is probably coming from pytubefix. Since PoToken is now deprecated, I didn't implent the PoToken alternative. **It is highly recommended not to use your main account** since you can be banned by YouTube.
 
+You also need to setup a webserver to allow streaming to a file on the network. Since I wrote this at 3 am I won't be covering this for you. Good luck, little guy! A heads up would be to search for "nginx view file on the browser"
+
 ## Setup
 
 This project uses uv, which can be installed from [the official website](https://docs.astral.sh/uv/getting-started/installation/).
