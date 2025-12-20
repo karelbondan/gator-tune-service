@@ -19,7 +19,7 @@ Generating an API key can be done using `secrets`, a built-in Python library, [w
 >>> 
 ```
 
-**Do not use this example output as your API key**. Run the bot using `uv run poe dev` after you've finished configuring.
+**Do not use this example output as your API key**. Run the bot using `uv run poe dev` after you've finished configuring. You will be prompted to connect your account to this bot. It will only prompt you once unless you delete the cache in the .venv folder.
 
 ### Example `.env` configuration
 
