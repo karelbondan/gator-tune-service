@@ -16,4 +16,5 @@ dependencies = [
 ]
 
 [tool.poe.tasks]
-dev="uv run fastapi dev ./src/main.py"
+dev="uv run fastapi dev ./src/main.py --proxy-headers --forwarded-allow-ips '*' --host 0.0.0.0"
+prod="uv run fastapi run ./src/main.py --proxy-headers --forwarded-allow-ips '*' --host 0.0.0.0"

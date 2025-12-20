@@ -120,7 +120,7 @@ class YT:
 
     def stream(self, video_id: str) -> str:
         yt = self.__youtube(video_id=video_id)
-        return "{}/music/{}".format(consts.SERVICE_URL, yt.video_id)
+        return "{}/music/{}.m4a".format(consts.SERVICE_URL, yt.video_id)
 
     def url(self, video_id: str) -> str:
         """This method is mainly used to trigger the oauth prompt"""
