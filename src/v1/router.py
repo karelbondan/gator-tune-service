@@ -1,9 +1,9 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from src.utils.methods import GatorKey
 
 import src.consts as consts
+from src.utils.methods import GatorKey
 from src.v1.service import YT
 
 api_key = GatorKey(name=consts.API_KEY_NAME, auto_error=True)

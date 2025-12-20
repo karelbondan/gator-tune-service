@@ -1,6 +1,7 @@
 import os
-from dotenv import load_dotenv
 from typing import cast
+
+from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
