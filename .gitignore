@@ -12,5 +12,4 @@ wheels/
 # Others
 .env
 .env.*
-__init__*
 download*/
