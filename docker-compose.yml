@@ -1,0 +1,19 @@
+services:
+  gator-tune-service:
+    stdin_open: true # opens stdin
+    tty: true # allocates a pseudo-TTY
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: "8000"
+      HOST: "0.0.0.0" # you might not want to change this
+      DOWNLOAD_LOC: "/downloads" # this will be inside the container
+      API_KEY: "abcdefg"
+      ALLOW_ORIGINS: "localhost:3000,localhost:4000"
+      ALLOW_METHODS: "OPTIONS,GET"
+      SERVICE_URL: "https://monty.rocks/music/"
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./downloads/:/downloads" # map this to the actual download location on the host machine

@@ -8,7 +8,7 @@ from src.v1.service import YT
 
 api_key = GatorKey(name=consts.API_KEY_NAME, auto_error=True)
 router = APIRouter(
-    prefix="/api/v1/music",
+    prefix="/v1/music",
     tags=["Music"],
     dependencies=[Depends(api_key)],
 )

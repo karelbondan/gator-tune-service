@@ -36,8 +36,22 @@ API_KEY=abcdefg
 ALLOW_ORIGINS=localhost:3000,localhost:4000
 ALLOW_METHODS=OPTIONS,GET
 
-# the domain where this service is hosted
-SERVICE_URL=https://monty.rocks
+# the static file serving endpoint prefix you've configured using your preferred webserver
+SERVICE_URL=https://monty.rocks/music/
 ```
+
+### Docker
+
+Docker configurations were added for ease of use (including for myself). You can change the port on which this service will run through the `docker-compose.yml` file along with other environment variables in the `environment` section. Setting up the service can be done by using the following steps:
+
+1. Run `docker compose up -d --build` inside the directory where this repo is cloned.
+2. Wait for docker to finish building the image. It will auto run the container.
+3. Output curently running containers with `docker ps`, you should see this service running as something like `gator-tune-service`.
+4. Copy the container ID displayed beside the container name, I'll use `c71bae393fc6` as an example.
+5. Run `docker logs c71bae393fc6` to view the logs. You should see the OAuth prompt being displayed there. Authenticate using your account.
+6. Run `docker attach --detach-keys="ctrl-a" c71bae393fc6`. You should see a blank output. Press `Enter` afterwards. A new set of logs telling the app is now running will be displayed.
+7. Detach from the container using `ctrl + a`.
+
+You can restart the container anytime and the auth prompt won't ask you again, similar to how if this service is run without Docker. Do keep in mind if for whatever reason you need to rebuild the image, you will need to redo the steps above to re-authenticate.
 
 © 2025 Karel Bondan © 2025 Unofficial [private] Fazbear Entertainment Discord Server
