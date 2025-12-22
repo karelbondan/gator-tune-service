@@ -52,6 +52,6 @@ Docker configurations were added for ease of use (including for myself). You can
 6. Run `docker attach --detach-keys="ctrl-a" c71bae393fc6`. You should see a blank output. Press `Enter` afterwards. A new set of logs telling the app is now running will be displayed.
 7. Detach from the container using `ctrl + a`.
 
-You can restart the container anytime and the auth prompt won't ask you again, similar to how if this service is run without Docker. Do keep in mind if for whatever reason you need to rebuild the image, you will need to redo the steps above to re-authenticate.
+Do keep in mind if for whatever reason you need to restart or even rebuild the docker image, you will need to redo the steps above to re-authenticate.
 
 © 2025 Karel Bondan © 2025 Unofficial [private] Fazbear Entertainment Discord Server
