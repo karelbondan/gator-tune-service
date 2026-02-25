@@ -1,11 +1,12 @@
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 import src.consts as consts
+from src.responses.base import ErrorResponse
 from src.utils.methods import init
 from src.utils.strings import Strings
 from src.v1.router import router
@@ -20,7 +21,7 @@ async def lifespan(_: FastAPI):
 
     # prompt user for oauth
     init()
-    
+
     # give back control to fastapi
     yield
 
@@ -52,3 +53,16 @@ def health():
 
 
 app.include_router(router)
+
+
+@app.exception_handler(Exception)
+def global_error_handler(_, exc: Exception):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    return JSONResponse(
+        status_code=status_code,
+        content=ErrorResponse(
+            Strings.INTERNAL_ERROR.format(exc),
+            exc.__class__.__name__,
+            status_code,
+        ).__dict__,
+    )
