@@ -1,0 +1,62 @@
+from typing import List, TypedDict
+
+
+class Formats(TypedDict):
+    asr: float
+    filesize: None
+    format_id: str
+    format_note: str
+    source_preference: float
+    fps: float
+    audio_channels: float
+    height: float
+    quality: float
+    has_drm: bool
+    tbr: float
+    filesize_approx: float
+    width: float
+    language: None
+    language_preference: float
+    preference: None
+    ext: str
+    vcodec: str
+    acodec: str
+    dynamic_range: str
+    url: str
+    available_at: float
+    protocol: str
+    video_ext: str
+    audio_ext: str
+    vbr: None
+    abr: None
+    resolution: str
+    aspect_ratio: float
+    format: str
+
+
+class Result(TypedDict):
+    id: str
+    title: str
+    thumbnail: str
+    formats: List["Formats"]
+    description: str
+    channel_id: str
+    channel_url: str
+    duration: float
+    view_count: float
+    average_rating: None
+    age_limit: float
+    webpage_url: str
+    categories: List[str]
+    tags: List[str]
+    duration_string: str
+    format_id: str
+    format_note: str
+    url: str
+    available_at: float
+    protocol: str
+    video_ext: str
+    audio_ext: str
+    resolution: str
+    aspect_ratio: float
+    format: str

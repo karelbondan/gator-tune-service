@@ -1,27 +1,29 @@
-from fastapi.testclient import TestClient
+import requests
 
 import src.utils.consts as consts
-from src.main import app
 from src.utils.strings import Strings
 
-client = TestClient(app)
-header = {consts.API_KEY_NAME: consts.API_KEY}
+HEADER = {consts.API_KEY_NAME: "abcdefg"}
+HOST = "http://127.0.0.1"
+PORT = 8000
+ENDP = "{}:{}".format(HOST, PORT)
+VERSION = "v2"
 
 
 def test_health():
-    res = client.get("/health")
+    res = requests.get(f"{ENDP}/health")
     assert res.json() == Strings.HEALTH
 
 
 def test_unauthorized():
-    res = client.get("/v2/music/search?query=hehe")
+    res = requests.get(f"{ENDP}/{VERSION}/music/search?query=hehe")
     assert res.status_code == 401
 
 
 def test_search():
-    res = client.get(
-        "/v2/music/search?query=never gonna give you up",
-        headers=header,
+    res = requests.get(
+        f"{ENDP}/{VERSION}/music/search?query=never gonna give you up",
+        headers=HEADER,
     )
     assert res.json() == {
         "id": "dQw4w9WgXcQ",
@@ -35,6 +37,6 @@ def test_search():
 
 def test_music():
     id = "dQw4w9WgXcQ"
-    res = client.get(f"/v2/music/?id={id}", headers=header)
+    res = requests.get(f"{ENDP}/{VERSION}/music/?id={id}", headers=HEADER)
     assert res.status_code == 200
     assert res.text

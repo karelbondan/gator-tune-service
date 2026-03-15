@@ -11,7 +11,12 @@ SERVICE_URL = cast(str, os.getenv("SERVICE_URL"))
 API_KEY_NAME = "X-API-Key"
 DOWNLOAD_LOC = cast(str, os.getenv("DOWNLOAD_LOC")) or "./downloads"
 
-# cors settings 
+# v2
+BGUTIL_URL = cast(str, os.getenv("BGUTIL_URL"))
+TEMP_LOC = cast(str, os.getenv("TEMP_LOC"))
+YT_DLP_VERBOSE = cast(bool, os.getenv("YT_DLP_VERBOSE"))
+
+# cors settings
 ALLOW_ORIGINS = cast(str, os.getenv("ALLOW_ORIGINS"))
 ALLOW_METHODS = cast(str, os.getenv("ALLOW_METHODS"))
 

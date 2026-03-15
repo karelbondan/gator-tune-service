@@ -1,12 +1,12 @@
+from os import mkdir, path
 from typing import Optional
 
 from fastapi import HTTPException, status
 from fastapi.security.api_key import APIKeyHeader
 from starlette.requests import Request
 
-import src.consts as consts
+import src.utils.consts as consts
 from src.utils.strings import Strings
-from src.v1.service import YT
 
 
 class GatorKey(APIKeyHeader):
@@ -43,5 +43,9 @@ class GatorKey(APIKeyHeader):
 
 
 def init():
-    yt = YT()
-    yt.url("dQw4w9WgXcQ")
+    cache_loc = path.join(consts.TEMP_LOC, "cache.json")
+    if not path.isdir(consts.TEMP_LOC):
+        mkdir(consts.TEMP_LOC)
+    if not path.isfile(cache_loc):
+        with open(cache_loc, "w") as f:
+            f.write("{}")

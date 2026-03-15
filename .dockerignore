@@ -1,5 +1,5 @@
 README.md
-.env.*
+.env*
 .venv
 download*
 Dockerfile
@@ -7,3 +7,4 @@ docker-compose.yml
 .git
 .gitignore
 __pycache__
+tmp/

@@ -1,7 +1,12 @@
 services:
+  bgutil-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider
+    init: true
+    ports:
+      - "10000:4416" # you might not wanna change this
   gator-tune-service:
-    stdin_open: true # opens stdin
-    tty: true # allocates a pseudo-TTY
+    depends_on:
+      - bgutil-provider
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,10 +15,21 @@ services:
       HOST: "0.0.0.0" # you might not want to change this
       DOWNLOAD_LOC: "/downloads" # this will be inside the container
       API_KEY: "abcdefg"
+
+      # cors
       ALLOW_ORIGINS: "localhost:3000,localhost:4000"
       ALLOW_METHODS: "OPTIONS,GET"
+
+      # --- v1 --- (deprecated, not needed anymore)
       SERVICE_URL: "https://monty.rocks/music/"
+
+      # --- v2 --- (you might not wanna change these)
+      BGUTIL_URL: "http://bgutil-provider:10000"
+      TEMP_LOC: "/tmp" # this will be inside the container
+      ENV: "docker"
+      YT_DLP_VERBOSE: 1
     ports:
       - "8000:8000"
     volumes:
       - "./downloads/:/downloads" # map this to the actual download location on the host machine
+      - "./tmp:/tmp"

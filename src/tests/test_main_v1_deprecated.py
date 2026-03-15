@@ -14,13 +14,13 @@ def test_health():
 
 
 def test_unauthorized():
-    res = client.get("/v2/music/search?query=hehe")
+    res = client.get("/v1/music/search?query=hehe")
     assert res.status_code == 401
 
 
 def test_search():
     res = client.get(
-        "/v2/music/search?query=never gonna give you up",
+        "/v1/music/search?query=never gonna give you up",
         headers=header,
     )
     assert res.json() == {
@@ -28,13 +28,12 @@ def test_search():
         "url": None,
         "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
         "queue": None,
-        "duration": "3:34",
+        "duration": "3.34",
         "playlist_title": None,
     }
 
 
 def test_music():
     id = "dQw4w9WgXcQ"
-    res = client.get(f"/v2/music/?id={id}", headers=header)
-    assert res.status_code == 200
-    assert res.text
+    res = client.get(f"/v1/music/?id={id}", headers=header)
+    assert res.json() == f"{consts.SERVICE_URL}/{id}.m4a"

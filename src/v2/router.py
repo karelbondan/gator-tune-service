@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends
 
 import src.utils.consts as consts
 from src.utils.methods import GatorKey
-from src.v1.service import YT
+from src.v2.service import YT
 
 api_key = GatorKey(name=consts.API_KEY_NAME, auto_error=True)
 router = APIRouter(
-    prefix="/v1/music",
+    prefix="/v2/music",
     tags=["Music"],
     dependencies=[Depends(api_key)],
 )

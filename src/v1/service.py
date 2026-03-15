@@ -7,9 +7,9 @@ import requests
 from bs4 import BeautifulSoup
 from pytubefix import YouTube
 
-import src.consts as consts
+import src.utils.consts as consts
+from src.schemas.response import Song
 from src.utils.strings import Strings
-from src.v1.schemas.response import Song
 
 
 class YT:

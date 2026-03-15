@@ -5,11 +5,11 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
-import src.consts as consts
+import src.utils.consts as consts
 from src.responses.base import ErrorResponse
 from src.utils.methods import init
 from src.utils.strings import Strings
-from src.v1.router import router
+from src.v2.router import router as routerv2
 
 
 @asynccontextmanager
@@ -19,7 +19,7 @@ async def lifespan(_: FastAPI):
     if not os.path.isdir(consts.DOWNLOAD_LOC):
         os.mkdir(consts.DOWNLOAD_LOC)
 
-    # prompt user for oauth
+    # init
     init()
 
     # give back control to fastapi
@@ -52,7 +52,15 @@ def health():
     return Strings.HEALTH
 
 
-app.include_router(router)
+app.include_router(routerv2)
+
+
+@app.exception_handler(ErrorResponse)
+def custom_error_handler(_, exc: ErrorResponse):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.__dict__,
+    )
 
 
 @app.exception_handler(Exception)
