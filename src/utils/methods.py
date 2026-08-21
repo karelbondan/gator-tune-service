@@ -1,11 +1,10 @@
 from os import mkdir, path
-from typing import Optional
 
 from fastapi import HTTPException, status
 from fastapi.security.api_key import APIKeyHeader
 from starlette.requests import Request
 
-import src.utils.consts as consts
+from src.utils import consts
 from src.utils.strings import Strings
 
 
@@ -25,7 +24,7 @@ class GatorKey(APIKeyHeader):
             auto_error=auto_error,
         )
 
-    def check_api_key(self, api_key: Optional[str]) -> Optional[str]:
+    def check_api_key(self, api_key: str | None) -> str | None:
         if not api_key:
             if self.auto_error:
                 raise self.make_not_authenticated_error()
@@ -37,7 +36,7 @@ class GatorKey(APIKeyHeader):
             )
         return api_key
 
-    async def __call__(self, request: Request) -> Optional[str]:
+    async def __call__(self, request: Request) -> str | None:
         api_key = request.headers.get(self.model.name)
         return self.check_api_key(api_key)
 

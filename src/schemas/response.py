@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -11,8 +9,8 @@ class PlaylistQueue(BaseModel):
 
 class Song(BaseModel):
     id: str
-    url: Optional[str]
+    url: str | None
     title: str
-    queue: Optional[list[PlaylistQueue]]
+    queue: list[PlaylistQueue] | None
     duration: str
-    playlist_title: Optional[str]
+    playlist_title: str | None

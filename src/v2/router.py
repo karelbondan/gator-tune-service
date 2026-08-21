@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-import src.utils.consts as consts
+from src.utils import consts
 from src.utils.methods import GatorKey
 from src.v2.service import YT
 

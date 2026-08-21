@@ -4,18 +4,18 @@ import json
 import os
 import re
 from os import path
-from typing import TYPE_CHECKING, Dict, cast
+from typing import TYPE_CHECKING, cast
 
 import requests
 from bs4 import BeautifulSoup
 from pytubefix import YouTube
 from yt_dlp import YoutubeDL
 
-import src.utils.consts as consts
 from src.responses.base import InvalidVideoId
 from src.schemas.response import Song
 from src.type.ytdl import Result
-from src.utils.strings import Regexes, Strings, Log
+from src.utils import consts
+from src.utils.strings import Log, Regexes, Strings
 
 if TYPE_CHECKING:
     from yt_dlp import _Params
@@ -46,13 +46,12 @@ class YT:
         }
         self.__url_valid_check_header = {
             "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36",
-            "Range": "bytes=0-1023",
         }
 
     def __get_cache(self, video_id: str):
         if path.isfile(self.__cache_loc):
             with open(self.__cache_loc, "r") as stored:
-                cache: Dict = json.load(stored)
+                cache: dict = json.load(stored)
                 try:
                     return Song(**cache[video_id])
                 except KeyError:
@@ -61,7 +60,7 @@ class YT:
 
     def __write_cache(self, yt: Result):
         with open(self.__cache_loc, "r+") as stored:
-            cache: Dict = json.loads(stored.read())
+            cache: dict = json.loads(stored.read())
             music_cache = Song(
                 id=yt["id"],
                 url=yt["url"],
@@ -83,10 +82,11 @@ class YT:
                 url=cached.url,
                 headers=self.__url_valid_check_header,
                 timeout=(5, 5),
+                stream=True,
             )
             print(Log.CACHE_AVAIL.format(video_id))
             # still valid if status code in 200 range
-            if url_valid.status_code // 100 == 2:  #
+            if url_valid.status_code // 100 == 2:
                 return cached
 
         # fetches new data if cache doesn't exist and/or url has expired
@@ -147,7 +147,7 @@ class YT:
 
         # apparently yt also includes "adSlotRenderer" in the first index so yeah
         is_adv: dict = videos[0]["itemSectionRenderer"]["contents"][0]
-        if list(is_adv.keys())[0] == "adSlotRenderer":
+        if next(iter(is_adv)) == "adSlotRenderer":
             videos = videos[1]["itemSectionRenderer"]["contents"]
         else:
             videos = videos[0]["itemSectionRenderer"]["contents"]
@@ -157,7 +157,7 @@ class YT:
         # also try to search for the first valid song for 10 times, if fails then just fail
         video_id = video_title = video_duration = ""
         for idx, songs in enumerate(videos):
-            assert isinstance(songs, Dict)
+            assert isinstance(songs, dict)
             if idx > 10:
                 break
             try:
@@ -198,6 +198,6 @@ class YT:
         return Strings.HEALTH_DRAMATIC
 
     def remove(self, id: str):
-        music_loc = "{}/{}.m4a".format(consts.DOWNLOAD_LOC, id)
+        music_loc = f"{consts.DOWNLOAD_LOC}/{id}.m4a"
         if path.isfile(music_loc):
             os.remove(music_loc)

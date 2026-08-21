@@ -5,8 +5,8 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
-import src.utils.consts as consts
 from src.responses.base import ErrorResponse
+from src.utils import consts
 from src.utils.methods import init
 from src.utils.strings import Strings
 from src.v2.router import router as routerv2

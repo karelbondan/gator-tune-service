@@ -1,14 +1,13 @@
 import json
 import os
 import re
-from typing import Dict
 
 import requests
 from bs4 import BeautifulSoup
 from pytubefix import YouTube
 
-import src.utils.consts as consts
 from src.schemas.response import Song
+from src.utils import consts
 from src.utils.strings import Strings
 
 
@@ -20,11 +19,11 @@ class YT:
         yt = YouTube(url=consts.YT + video_id, use_oauth=True)
 
         # download the song, skip if already downloaded before
-        if not os.path.isfile("{}/{}.m4a".format(self.download_path, yt.video_id)):
+        if not os.path.isfile(f"{self.download_path}/{yt.video_id}.m4a"):
             audio = yt.streams.get_audio_only()
             assert audio
             audio.download(
-                filename="{}.m4a".format(yt.video_id),
+                filename=f"{yt.video_id}.m4a",
                 output_path=self.download_path,
             )
 
@@ -87,7 +86,7 @@ class YT:
 
         # apparently yt also includes "adSlotRenderer" in the first index so yeah
         is_adv: dict = videos[0]["itemSectionRenderer"]["contents"][0]
-        if list(is_adv.keys())[0] == "adSlotRenderer":
+        if next(iter(is_adv)) == "adSlotRenderer":
             videos = videos[1]["itemSectionRenderer"]["contents"]
         else:
             videos = videos[0]["itemSectionRenderer"]["contents"]
@@ -97,7 +96,7 @@ class YT:
         # also try to search for the first valid song for 10 times, if fails then just fail
         video_id = video_title = video_duration = ""
         for idx, songs in enumerate(videos):
-            assert isinstance(songs, Dict)
+            assert isinstance(songs, dict)
             if idx > 10:
                 break
             try:
@@ -120,7 +119,7 @@ class YT:
 
     def stream(self, video_id: str) -> str:
         yt = self.__youtube(video_id=video_id)
-        return "{}/{}.m4a".format(consts.SERVICE_URL, yt.video_id)
+        return f"{consts.SERVICE_URL}/{yt.video_id}.m4a"
 
     def url(self, video_id: str) -> str:
         """This method is mainly used to trigger the oauth prompt"""
@@ -133,6 +132,6 @@ class YT:
         return Strings.HEALTH_DRAMATIC
 
     def remove(self, id: str):
-        path = "{}/{}.m4a".format(consts.DOWNLOAD_LOC, id)
+        path = f"{consts.DOWNLOAD_LOC}/{id}.m4a"
         if os.path.isfile(path):
             os.remove(path)

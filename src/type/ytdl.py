@@ -1,4 +1,4 @@
-from typing import List, TypedDict
+from typing import TypedDict
 
 
 class Formats(TypedDict):
@@ -38,7 +38,7 @@ class Result(TypedDict):
     id: str
     title: str
     thumbnail: str
-    formats: List["Formats"]
+    formats: list["Formats"]
     description: str
     channel_id: str
     channel_url: str
@@ -47,8 +47,8 @@ class Result(TypedDict):
     average_rating: None
     age_limit: float
     webpage_url: str
-    categories: List[str]
-    tags: List[str]
+    categories: list[str]
+    tags: list[str]
     duration_string: str
     format_id: str
     format_note: str

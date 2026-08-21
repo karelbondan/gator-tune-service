@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
-import src.utils.consts as consts
 from src.main import app
+from src.utils import consts
 from src.utils.strings import Strings
 
 client = TestClient(app)

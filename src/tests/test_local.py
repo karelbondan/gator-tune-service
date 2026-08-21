@@ -1,6 +1,6 @@
 import requests
 
-import src.utils.consts as consts
+from src.utils import consts
 from src.utils.strings import Strings
 
 HEADER = {consts.API_KEY_NAME: "abcdefg"}
