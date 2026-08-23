@@ -17,3 +17,21 @@ class InvalidVideoId(ErrorResponse):
             self.__class__.__name__,
             status.HTTP_404_NOT_FOUND,
         )
+
+
+class SourceNotFound(ErrorResponse):
+    def __init__(self) -> None:
+        super().__init__(
+            Strings.SOURCE_404,
+            self.__class__.__name__,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+
+class UrlExpired(ErrorResponse):
+    def __init__(self) -> None:
+        super().__init__(
+            Strings.SOURCE_403,
+            self.__class__.__name__,
+            status.HTTP_403_FORBIDDEN,
+        )

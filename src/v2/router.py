@@ -22,3 +22,8 @@ def get_music(service: Annotated[YT, Depends(YT)], id: str):
 @router.get("/search")
 def search_and_get_music(service: Annotated[YT, Depends(YT)], query: str):
     return service.search(query)
+
+
+@router.get("/batch")
+def search_and_get_multiple_music(service: Annotated[YT, Depends(YT)], query: str):
+    return service.batch(query)

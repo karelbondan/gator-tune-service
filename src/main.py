@@ -1,7 +1,8 @@
 import os
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI, status
+from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
@@ -10,6 +11,7 @@ from src.utils import consts
 from src.utils.methods import init
 from src.utils.strings import Strings
 from src.v2.router import router as routerv2
+from src.v2.service import YT
 
 
 @asynccontextmanager
@@ -48,8 +50,8 @@ def root():
 
 
 @app.get("/health", tags=["Main"])
-def health():
-    return Strings.HEALTH
+def health(service: Annotated[YT, Depends(YT)]):
+    return service.health()
 
 
 app.include_router(routerv2)

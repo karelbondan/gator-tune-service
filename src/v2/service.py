@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from pytubefix import YouTube
 from yt_dlp import YoutubeDL
 
-from src.responses.base import InvalidVideoId
+from src.responses.base import InvalidVideoId, SourceNotFound, UrlExpired
 from src.schemas.response import Song
 from src.type.ytdl import Result
 from src.utils import consts
@@ -58,6 +58,17 @@ class YT:
                     return None
         return None
 
+    def __url_valid(self, url: str):
+        """Check whether the url has expired or not"""
+        url_valid = requests.get(
+            url=url,
+            headers=self.__url_valid_check_header,
+            timeout=(5, 5),
+            stream=True,
+        )
+        # still valid if status code in 200 range
+        return url_valid.status_code // 100 == 2
+
     def __write_cache(self, yt: Result):
         with open(self.__cache_loc, "r+") as stored:
             cache: dict = json.loads(stored.read())
@@ -65,6 +76,7 @@ class YT:
                 id=yt["id"],
                 url=yt["url"],
                 title=yt["title"],
+                cover=yt["thumbnail"],
                 duration=yt["duration_string"],
                 queue=None,
                 playlist_title=None,
@@ -77,28 +89,21 @@ class YT:
     def __youtube(self, video_id: str):
         # check cache and the url validity if exists
         cached = self.__get_cache(video_id)
-        if cached and cached.url:
-            url_valid = requests.get(
-                url=cached.url,
-                headers=self.__url_valid_check_header,
-                timeout=(5, 5),
-                stream=True,
-            )
+        if cached and cached.url and self.__url_valid(cached.url):
             print(Log.CACHE_AVAIL.format(video_id))
-            # still valid if status code in 200 range
-            if url_valid.status_code // 100 == 2:
-                return cached
+            return cached
 
         # fetches new data if cache doesn't exist and/or url has expired
         with YoutubeDL(self.__ytdl_config) as yt:
             result = cast(Result, yt.extract_info(video_id, download=False))
             if "url" not in result:
-                raise InvalidVideoId()
+                raise SourceNotFound()
             self.__write_cache(result)
             return Song(
                 id=result["id"],
                 url=result["url"],
                 title=result["title"],
+                cover=result["thumbnail"],
                 queue=None,
                 duration=result["duration_string"],
                 playlist_title=None,
@@ -107,31 +112,15 @@ class YT:
     def __find_id(self, query: str):
         """Check if the given query is a youtube link, if not then return nothing"""
         try:
-            # if query is a possible id then just return it
-            if len(re.findall(Regexes.YT_VIDEO_ID, query)) > 0:
-                return query
-            else:
-                return re.findall(Regexes.YT_URL, query)[0][-1]
+            return re.findall(Regexes.YT_URL, query)[0][-1]
         except IndexError:
             return None
 
-    def __result(self, response: requests.Response):
-        # parse response using bs4 and get search result
-        soup = BeautifulSoup(response.content.decode("utf-8"), features="html5lib")
-        # the index of the script that contains the data varies by time.
-        # at the time of this writing it was 23. for loop is better to reduce
-        # the script breaking from changes made by yt
-        scripts = soup.find_all("script")
-        for details in scripts:
-            if "ytInitialData" in str(details):
-                data = re.findall(Regexes.YT_INIT_DATA, str(details))
-                return json.loads(data[0])
-
-    def search(self, query: str) -> Song:
+    def __search(self, query: str, batch=False) -> list[Song]:
         # check if song is a yt link
         id = self.__find_id(query=query)
         if id:
-            return self.__youtube(id)
+            return [self.__youtube(id)]
 
         # search youtube
         response = requests.get(url=consts.URL + query, headers=consts.HEADERS)
@@ -152,39 +141,88 @@ class YT:
         else:
             videos = videos[0]["itemSectionRenderer"]["contents"]
 
-        # and get the first one
-        # apparently yt includes "didYouMeanRenderer" if it thinks there's a typo in the query
-        # also try to search for the first valid song for 10 times, if fails then just fail
-        video_id = video_title = video_duration = ""
-        for idx, songs in enumerate(videos):
-            assert isinstance(songs, dict)
-            if idx > 10:
+        # and get the first one if batch if False, else max out at 20 songs
+        # apparently yt includes "didYouMeanRenderer" if it thinks there's a
+        # typo in the query
+        candidates: list[Song] = []
+
+        for idx, song in enumerate(videos):
+            assert isinstance(song, dict)
+
+            # if not batch, to save waiting time do early return
+            if not batch and idx > 10:
                 break
+
             try:
-                first_result = songs["videoRenderer"]
-                video_id: str = first_result["videoId"]
-                video_title: str = first_result["title"]["runs"][0]["text"]
-                video_duration: str = first_result["lengthText"]["simpleText"]
-                break
+                raw_data = song["videoRenderer"]
+                song_id: str = raw_data["videoId"]
+                song_title: str = raw_data["title"]["runs"][0]["text"]
+                song_duration: str = raw_data["lengthText"]["simpleText"]
+                song_thumbnail: str = raw_data["thumbnail"]["thumbnails"][-1]["url"]
+
+                candidates.append(
+                    Song(
+                        id=song_id,
+                        url=None,
+                        title=song_title,
+                        cover=song_thumbnail,
+                        queue=None,
+                        duration=song_duration.replace(".", ":"),
+                        playlist_title=None,
+                    )
+                )
+
+                # 10 times retry and max out result at 20 songs
+                if not batch or len(candidates) > 20:
+                    break
             except KeyError:
                 continue
 
-        return Song(
-            id=video_id,
-            url=None,
-            title=video_title,
-            queue=None,
-            duration=video_duration.replace(".", ":"),
-            playlist_title=None,
-        )
+        # prevent empty array if no candidates were found (should be
+        # very unlikely)
+        if len(candidates) < 1:
+            candidates.append(
+                Song(
+                    id="",
+                    url=None,
+                    title="",
+                    cover="",
+                    queue=None,
+                    duration="",
+                    playlist_title=None,
+                )
+            )
+
+        return candidates
+
+    def __result(self, response: requests.Response):
+        # parse response using bs4 and get search result
+        soup = BeautifulSoup(response.content.decode("utf-8"), features="html5lib")
+        # the index of the script that contains the data varies by time.
+        # at the time of this writing it was 23. for loop is better to reduce
+        # the script breaking from changes made by yt
+        scripts = soup.find_all("script")
+        for details in scripts:
+            if "ytInitialData" in str(details):
+                data = re.findall(Regexes.YT_INIT_DATA, str(details))
+                return json.loads(data[0])
+
+    def search(self, query: str) -> Song:
+        """Returns one song from the search result"""
+        return self.__search(query, batch=False)[0]
+
+    def batch(self, query: str) -> list[Song]:
+        """Returns multiple songs (20 max) from the search result"""
+        return self.__search(query, batch=True)
 
     def stream(self, video_id: str) -> str:
+        """Get the requested song's streamable url"""
         id = self.__find_id(video_id)
         if not id:
             raise InvalidVideoId()
         yt = self.__youtube(id)
         if not yt.url:
-            raise InvalidVideoId()
+            raise SourceNotFound()
         return yt.url
 
     def url(self, video_id: str) -> str:
@@ -195,9 +233,20 @@ class YT:
         return audio.url
 
     def health(self) -> str:
+        """Check service health"""
+        try:
+            stream_url = self.stream("youtu.be/dQw4w9WgXcQ")
+            if not self.__url_valid(stream_url):
+                raise UrlExpired()
+
+        except Exception as error:  # noqa
+            det = f"{error.__class__.__name__}: {error!s}"
+            return f"{Strings.UNHEALTHY_DRAMATIC}\n{det}"
+
         return Strings.HEALTH_DRAMATIC
 
     def remove(self, id: str):
+        """V1 method to remove temporarily downloaded songs"""
         music_loc = f"{consts.DOWNLOAD_LOC}/{id}.m4a"
         if path.isfile(music_loc):
             os.remove(music_loc)
