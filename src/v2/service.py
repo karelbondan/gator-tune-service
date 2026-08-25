@@ -237,7 +237,7 @@ class YT:
     def health(self) -> str:
         """Check service health"""
         try:
-            stream_url = self.stream("youtu.be/dQw4w9WgXcQ")
+            stream_url = self.stream("dQw4w9WgXcQ")
             if not self._source_valid(stream_url):
                 raise UrlExpired()
 
