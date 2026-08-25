@@ -1,5 +1,8 @@
 import os
+import re
+import subprocess
 from contextlib import asynccontextmanager
+from textwrap import dedent
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, status
@@ -12,6 +15,19 @@ from src.utils.methods import init
 from src.utils.strings import Strings
 from src.v2.router import router as routerv2
 from src.v2.service import YT
+
+git_log = subprocess.check_output(["git", "log", "-n", "1"]).decode("ascii").strip()
+
+re_version: str = r"(?<=commit\s)\w+"
+re_message: str = r"(?<=\n\n).+"
+
+version = "<git executable not installed>"
+message = "<git executable not installed>"
+try:
+    version = re.findall(re_version, git_log)[0].strip()[:7]
+    message = re.findall(re_message, git_log)[0].strip()
+except IndexError:
+    pass
 
 
 @asynccontextmanager
@@ -28,9 +44,14 @@ async def lifespan(_: FastAPI):
     yield
 
 
+description = f"""
+The external service for fetching musics <br />
+commit {version} - {message}
+"""
+
 app = FastAPI(
     title="Gator Tune Music Service",
-    description="The external service for fetching musics",
+    description=(dedent(description)),
     version="0.0.1",
     lifespan=lifespan,
 )

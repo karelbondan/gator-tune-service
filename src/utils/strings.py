@@ -14,7 +14,7 @@ class Regexes:
         r"(https?:\/\/)?(([\w\.]{1,256})?youtu\.?be(\.com)?\/(watch\?v=)?)([\w-]{11})"
     )
     YT_INIT_DATA = r"(?<=var ytInitialData = ).+(?=;</script>)"
-    YT_VIDEO_ID = r"[a-zA-Z0-9_-]{11}"
+    YT_VIDEO_ID = r"^[a-zA-Z0-9_-]{11}$"
 
 
 class Log:

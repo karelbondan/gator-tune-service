@@ -3,6 +3,9 @@ FROM python:3.12-slim
 ENV PORT=8000
 ENV HOST=0.0.0.0
 
+# Install git
+RUN apt-get update && apt-get install -y --no-install-recommends git
+
 # Install uv.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 

@@ -48,7 +48,7 @@ class YT:
             "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36",
         }
 
-    def __get_cache(self, video_id: str):
+    def _get_cache(self, video_id: str):
         if path.isfile(self.__cache_loc):
             with open(self.__cache_loc, "r") as stored:
                 cache: dict = json.load(stored)
@@ -58,7 +58,7 @@ class YT:
                     return None
         return None
 
-    def __url_valid(self, url: str):
+    def _source_valid(self, url: str):
         """Check whether the url has expired or not"""
         url_valid = requests.get(
             url=url,
@@ -69,7 +69,7 @@ class YT:
         # still valid if status code in 200 range
         return url_valid.status_code // 100 == 2
 
-    def __write_cache(self, yt: Result):
+    def _write_cache(self, yt: Result):
         with open(self.__cache_loc, "r+") as stored:
             cache: dict = json.loads(stored.read())
             music_cache = Song(
@@ -86,10 +86,10 @@ class YT:
             stored.write(json.dumps(cache, indent=4))
             stored.truncate()
 
-    def __youtube(self, video_id: str):
+    def _youtube(self, video_id: str):
         # check cache and the url validity if exists
-        cached = self.__get_cache(video_id)
-        if cached and cached.url and self.__url_valid(cached.url):
+        cached = self._get_cache(video_id)
+        if cached and cached.url and self._source_valid(cached.url):
             print(Log.CACHE_AVAIL.format(video_id))
             return cached
 
@@ -98,7 +98,7 @@ class YT:
             result = cast(Result, yt.extract_info(video_id, download=False))
             if "url" not in result:
                 raise SourceNotFound()
-            self.__write_cache(result)
+            self._write_cache(result)
             return Song(
                 id=result["id"],
                 url=result["url"],
@@ -109,24 +109,24 @@ class YT:
                 playlist_title=None,
             )
 
-    def __find_id(self, query: str):
+    def _find_id(self, query: str):
         """Check if the given query is a youtube link, if not then return nothing"""
         try:
             return re.findall(Regexes.YT_URL, query)[0][-1]
         except IndexError:
             return None
 
-    def __search(self, query: str, batch=False) -> list[Song]:
+    def _search(self, query: str, batch=False) -> list[Song]:
         # check if song is a yt link
-        id = self.__find_id(query=query)
+        id = self._find_id(query=query)
         if id:
-            return [self.__youtube(id)]
+            return [self._youtube(id)]
 
         # search youtube
         response = requests.get(url=consts.URL + query, headers=consts.HEADERS)
 
         # get json response
-        videos = self.__result(response=response)
+        videos = self._result(response=response)
 
         # actually get the list of result
         assert videos is not None
@@ -195,7 +195,7 @@ class YT:
 
         return candidates
 
-    def __result(self, response: requests.Response):
+    def _result(self, response: requests.Response):
         # parse response using bs4 and get search result
         soup = BeautifulSoup(response.content.decode("utf-8"), features="html5lib")
         # the index of the script that contains the data varies by time.
@@ -209,18 +209,20 @@ class YT:
 
     def search(self, query: str) -> Song:
         """Returns one song from the search result"""
-        return self.__search(query, batch=False)[0]
+        return self._search(query, batch=False)[0]
 
     def batch(self, query: str) -> list[Song]:
         """Returns multiple songs (20 max) from the search result"""
-        return self.__search(query, batch=True)
+        return self._search(query, batch=True)
 
     def stream(self, video_id: str) -> str:
         """Get the requested song's streamable url"""
-        id = self.__find_id(video_id)
+        # id = self.__find_id(video_id)
+        id = re.findall(Regexes.YT_VIDEO_ID, video_id)[0]
+        print(id)
         if not id:
             raise InvalidVideoId()
-        yt = self.__youtube(id)
+        yt = self._youtube(id)
         if not yt.url:
             raise SourceNotFound()
         return yt.url
@@ -236,7 +238,7 @@ class YT:
         """Check service health"""
         try:
             stream_url = self.stream("youtu.be/dQw4w9WgXcQ")
-            if not self.__url_valid(stream_url):
+            if not self._source_valid(stream_url):
                 raise UrlExpired()
 
         except Exception as error:  # noqa
