@@ -16,17 +16,18 @@ from src.utils.strings import Strings
 from src.v2.router import router as routerv2
 from src.v2.service import YT
 
-git_log = subprocess.check_output(["git", "log", "-n", "1"]).decode("ascii").strip()
-
-re_version: str = r"(?<=commit\s)\w+"
-re_message: str = r"(?<=\n\n).+"
-
 version = "<git executable not installed>"
 message = "<git executable not installed>"
+
 try:
+    git_log = subprocess.check_output(["git", "log", "-n", "1"]).decode("ascii").strip()
+
+    re_version: str = r"(?<=commit\s)\w+"
+    re_message: str = r"(?<=\n\n).+"
+
     version = re.findall(re_version, git_log)[0].strip()[:7]
     message = re.findall(re_message, git_log)[0].strip()
-except IndexError:
+except Exception:  # noqa
     pass
 
 
