@@ -28,6 +28,15 @@ class SourceNotFound(ErrorResponse):
         )
 
 
+class SourceUnavailable(ErrorResponse):
+    def __init__(self) -> None:
+        super().__init__(
+            Strings.SOURCE_500,
+            self.__class__.__name__,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+
 class UrlExpired(ErrorResponse):
     def __init__(self) -> None:
         super().__init__(

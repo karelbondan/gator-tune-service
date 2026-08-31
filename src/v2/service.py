@@ -11,7 +11,12 @@ from bs4 import BeautifulSoup
 from pytubefix import YouTube
 from yt_dlp import YoutubeDL
 
-from src.responses.base import InvalidVideoId, SourceNotFound, UrlExpired
+from src.responses.base import (
+    InvalidVideoId,
+    SourceNotFound,
+    SourceUnavailable,
+    UrlExpired,
+)
 from src.schemas.response import Song
 from src.type.ytdl import Result
 from src.utils import consts
@@ -86,7 +91,12 @@ class YT:
             stored.write(json.dumps(cache, indent=4))
             stored.truncate()
 
-    def _youtube(self, video_id: str):
+    def _youtube(self, video_id: str, strict=True):
+        """
+        This method is also used to get the song info.
+        The `strict` param is used when this method is invoked
+        from public methods that's meant to get the streamable url
+        """
         # check cache and the url validity if exists
         cached = self._get_cache(video_id)
         if cached and cached.url and self._source_valid(cached.url):
@@ -96,12 +106,15 @@ class YT:
         # fetches new data if cache doesn't exist and/or url has expired
         with YoutubeDL(self.__ytdl_config) as yt:
             result = cast(Result, yt.extract_info(video_id, download=False))
-            if "url" not in result:
+            if len(result["formats"]) < 1 and strict:
+                raise SourceUnavailable()
+            if "url" not in result and strict:
                 raise SourceNotFound()
-            self._write_cache(result)
+            if strict:
+                self._write_cache(result)
             return Song(
                 id=result["id"],
-                url=result["url"],
+                url=result.get("url"),  # .get is not destructive
                 title=result["title"],
                 cover=result["thumbnail"],
                 queue=None,
@@ -113,6 +126,13 @@ class YT:
         """Check if the given query is a youtube link, if not then return nothing"""
         try:
             return re.findall(Regexes.YT_URL, query)[0][-1]
+        except IndexError:
+            return None
+
+    def _find_id_no_url(self, id: str):
+        """Check if the given query is a youtube id, if not then return nothing"""
+        try:
+            return re.findall(Regexes.YT_VIDEO_ID, id)[0]
         except IndexError:
             return None
 
@@ -215,11 +235,21 @@ class YT:
         """Returns multiple songs (20 max) from the search result"""
         return self._search(query, batch=True)
 
+    def info(self, id_or_url: str) -> Song:
+        """Returns the song info based on a url or id"""
+        id = self._find_id(id_or_url)  # check if url
+        if id:
+            return self._youtube(id, False)
+
+        id = self._find_id_no_url(id_or_url)  # check if id
+        if id:
+            return self._youtube(id, False)
+
+        raise InvalidVideoId()  # not url or id
+
     def stream(self, video_id: str) -> str:
         """Get the requested song's streamable url"""
-        # id = self.__find_id(video_id)
-        id = re.findall(Regexes.YT_VIDEO_ID, video_id)[0]
-        print(id)
+        id = self._find_id_no_url(video_id)
         if not id:
             raise InvalidVideoId()
         yt = self._youtube(id)

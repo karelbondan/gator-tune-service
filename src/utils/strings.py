@@ -7,6 +7,7 @@ class Strings:
     INVALID_ID = "No streamable url found with the specified video id"
     SOURCE_404 = "No streamable url found with the specified video id"
     SOURCE_403 = "URL has expired. Please refetch"
+    SOURCE_500 = "Video is either private, was deleted, or was taken down"
 
 
 class Regexes:
